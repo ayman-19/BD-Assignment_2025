@@ -196,7 +196,7 @@ namespace BD_Assignment_2025.Services
                     countryInfo.IP,
                     countryInfo.Code,
                     isBlocked,
-                    _accessor.HttpContext.Request.Headers["User-Agent"]
+                    _accessor.HttpContext!.Request.Headers["User-Agent"]!
                 )
             );
             return new()
