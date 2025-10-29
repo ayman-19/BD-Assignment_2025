@@ -21,7 +21,7 @@ builder.Services.AddQuartz(q =>
         opts.ForJob(jobKey)
             .WithIdentity("ExpiredBlockJob-trigger")
             .StartNow()
-            .WithSimpleSchedule(x => x.WithIntervalInMinutes(3).RepeatForever())
+            .WithSimpleSchedule(x => x.WithIntervalInMinutes(5).RepeatForever())
     );
 });
 
