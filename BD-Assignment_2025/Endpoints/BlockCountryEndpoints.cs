@@ -1,109 +1,107 @@
-﻿using BD_Assignment_2025.Entities;
-using BD_Assignment_2025.IEndpoints;
-using BD_Assignment_2025.IServices;
+﻿namespace BD_Assignment_2025.Endpoints;
 
-namespace BD_Assignment_2025.Endpoints
+public class BlockCountryEndpoints : IEndpoint
 {
-    public class BlockCountryEndpoints : IEndpoint
+    public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
-        {
-            RouteGroupBuilder group = endpoints.MapGroup("/api/countries").WithTags("Country");
+        RouteGroupBuilder group = endpoints.MapGroup("/api/countries").WithTags("Country");
 
-            group.MapGet(
-                "GetCountryInfoByIPAsync/{ip}",
-                async (
-                    string ip,
-                    IBlockedCountryService _blockedCountryService,
-                    CancellationToken cancellationToken
-                ) =>
-                    Results.Ok(
-                        await _blockedCountryService.GetCountryInfoByIPAsync(ip, cancellationToken)
-                    )
-            );
+        group.MapPost(
+            "Block",
+            async (
+                BlockCountry country,
+                IBlockedCountryService _blockedCountryService,
+                CancellationToken cancellationToken
+            ) =>
+                Results.Ok(
+                    await _blockedCountryService.AddBlockCountryAsync(country, cancellationToken)
+                )
+        );
 
-            group.MapPost(
-                "AddBlockedCountry/{countryCode}",
-                async (
-                    string countryCode,
-                    IBlockedCountryService _blockedCountryService,
-                    CancellationToken cancellationToken
-                ) =>
-                    Results.Ok(
-                        await _blockedCountryService.AddBlockCountryAsync(
-                            new BlockCountry(countryCode, null),
-                            cancellationToken
-                        )
+        group.MapDelete(
+            "Block/{countryCode}",
+            async (
+                string countryCode,
+                IBlockedCountryService _blockedCountryService,
+                CancellationToken cancellationToken
+            ) =>
+                Results.Ok(
+                    await _blockedCountryService.DeleteBlockedCountry(
+                        countryCode,
+                        cancellationToken
                     )
-            );
-            group.MapGet(
-                "GetAllBlockedCountries/{page}/{pageSize}/{search}",
-                async (
-                    int page,
-                    int pageSize,
-                    string search,
-                    IBlockedCountryService _blockedCountryService,
-                    CancellationToken cancellationToken
-                ) =>
-                    Results.Ok(
-                        await _blockedCountryService.GetAllBlockedCountries(
-                            page,
-                            pageSize,
-                            search,
-                            cancellationToken
-                        )
-                    )
-            );
-            group.MapDelete(
-                "DeleteBlockedCountry/{countryCode}",
-                async (
-                    string countryCode,
-                    IBlockedCountryService _blockedCountryService,
-                    CancellationToken cancellationToken
-                ) =>
-                    Results.Ok(
-                        await _blockedCountryService.DeleteBlockedCountry(
-                            countryCode,
-                            cancellationToken
-                        )
-                    )
-            );
+                )
+        );
 
-            group.MapPut(
-                "TemporarilyBlockCountryAsync/{countryCode}/{durationMinutes}",
-                async (
-                    string countryCode,
-                    double durationMinutes,
-                    IBlockedCountryService _blockedCountryService,
-                    CancellationToken cancellationToken
-                ) =>
-                    Results.Ok(
-                        await _blockedCountryService.TemporarilyBlockCountryAsync(
-                            countryCode,
-                            durationMinutes,
-                            cancellationToken
-                        )
+        group.MapGet(
+            "Blocked",
+            async (
+                [FromQuery] int? page,
+                [FromQuery] int? pageSize,
+                [FromQuery] string? search,
+                IBlockedCountryService _blockedCountryService,
+                CancellationToken cancellationToken
+            ) =>
+                Results.Ok(
+                    await _blockedCountryService.GetAllBlockedCountries(
+                        page,
+                        pageSize,
+                        search,
+                        cancellationToken
                     )
-            );
+                )
+        );
 
-            group.MapGet(
-                "VerifyIPIsBlockedAsync/{ip}",
-                async (string ip, IBlockedCountryService _blockedCountryService) =>
-                    Results.Ok(await _blockedCountryService.VerifyIPIsBlocked(ip))
-            );
-
-            group.MapGet(
-                "LogFailedBlockedAttemptsAsync/{page}/{pageSize}",
-                async (
-                    int page,
-                    int pageSize,
-                    IBlockedCountryService _blockedCountryService,
-                    CancellationToken cancellationToken
-                ) =>
-                    Results.Ok(
-                        await _blockedCountryService.LogFailedBlockedAttempts(page, pageSize)
+        group.MapGet(
+            "ip/lookup",
+            async (
+                [FromQuery] string ipAddress,
+                IBlockedCountryService _blockedCountryService,
+                CancellationToken cancellationToken
+            ) =>
+                Results.Ok(
+                    await _blockedCountryService.GetCountryInfoByIPAsync(
+                        ipAddress,
+                        cancellationToken
                     )
-            );
-        }
+                )
+        );
+
+        group.MapGet(
+            "ip/check-block",
+            async (HttpContext context, IBlockedCountryService _blockedCountryService) =>
+                Results.Ok(
+                    await _blockedCountryService.VerifyIPIsBlocked(
+                        context.Connection.RemoteIpAddress?.ToString() ?? string.Empty
+                    )
+                )
+        );
+
+        group.MapGet(
+            "logs/blocked-attempts",
+            async (
+                [FromQuery] int? page,
+                [FromQuery] int? pageSize,
+                IBlockedCountryService _blockedCountryService,
+                CancellationToken cancellationToken
+            ) => Results.Ok(await _blockedCountryService.LogFailedBlockedAttempts(page, pageSize))
+        );
+
+        group.MapPost(
+            "temporal-block",
+            async (
+                [FromQuery] string countryCode,
+                [FromQuery] double durationMinutes,
+                IBlockedCountryService _blockedCountryService,
+                CancellationToken cancellationToken
+            ) =>
+                Results.Ok(
+                    await _blockedCountryService.TemporarilyBlockCountryAsync(
+                        countryCode,
+                        durationMinutes,
+                        cancellationToken
+                    )
+                )
+        );
     }
 }

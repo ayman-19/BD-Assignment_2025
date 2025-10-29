@@ -1,30 +1,25 @@
-﻿using BD_Assignment_2025.IRepositories;
-using Moq;
-using NUnit.Framework;
+﻿namespace BD_Assignment_2025.Testing;
 
-namespace BD_Assignment_2025.Testing
+[TestFixture]
+public class BlockedCountryTest
 {
-    [TestFixture]
-    public class BlockedCountryTest
+    private Mock<IBlockedCountryRepository> _mockRepo;
+
+    [SetUp]
+    public void Setup()
     {
-        private Mock<IBlockedCountryRepository> _mockRepo;
+        _mockRepo = new Mock<IBlockedCountryRepository>();
+    }
 
-        [SetUp]
-        public void Setup()
-        {
-            _mockRepo = new Mock<IBlockedCountryRepository>();
-        }
+    [Test]
+    public async Task TestBlockCountry()
+    {
+        // Arrange
+        var arrange = await _mockRepo.Object.IsAnyExist(bc => bc.Key.ToUpper().Equals("EG"));
+        // Act
 
-        [Test]
-        public async Task TestBlockCountry()
-        {
-            // Arrange
-            var arrange = await _mockRepo.Object.IsAnyExist(bc => bc.Key.ToUpper().Equals("EG"));
-            // Act
-
-            var compare = false;
-            // Assert
-            Assert.AreEqual(arrange, compare);
-        }
+        var compare = false;
+        // Assert
+        Assert.AreEqual(arrange, compare);
     }
 }
